@@ -8,11 +8,11 @@ import (
 )
 
 type KafkaAppConf struct {
-	Env     string `env:"KAFKA_APP_ENV" env-required:"true"`
-	AppName string `env:"KAFKA_APP_NAME" env-required:"true"`
+	Env     string `env:"APP_ENV" env-required:"true"`
+	AppName string `env:"APP_NAME" env-required:"true"`
 
-	Log   modules.LoggerCfg `env-prefix:"KAFKA_APP_LOG_"`
-	Kafka modules.Kafka     `env-prefix:"API_KAFKA_"`
+	Log   modules.LoggerCfg `env-prefix:"APP_LOG_"`
+	Kafka modules.Kafka     `env-prefix:"APP_KAFKA_"`
 }
 
 func LoadKafkaAppConfConf() (*KafkaAppConf, error) {

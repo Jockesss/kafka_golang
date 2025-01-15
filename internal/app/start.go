@@ -2,39 +2,41 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"kafka-golang/internal/config"
+	"kafka-golang/internal/infrastructure/kafka"
 	"kafka-golang/internal/infrastructure/log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"go.uber.org/zap/zapcore"
 )
 
 const (
-	consumerGroup = "rnis-service-kafka-app"
+	appName = "kafka-golang"
 )
 
-//nolint:funlen,gocritic,nolintlint
+var defaultLevel = zap.NewAtomicLevelAt(zap.InfoLevel)
+
 func Start(ctx context.Context) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	l := log.New(defaultLevel, os.Stdout)
+	ctx = log.WithLogger(ctx, l)
+
 	cfg, err := config.LoadKafkaAppConfConf()
 	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+		return errors.Wrapf(err, "Load config file")
 	}
 
-	logLevel := zapcore.ErrorLevel
+	l.Infof("App running")
 
-	if err = logLevel.UnmarshalText([]byte(cfg.Log.Level)); err != nil {
-		log.Logger().Errorf("parse log level env var: %v", err)
+	testProducer, err := kafka.InitKafkaProducer(ctx, appName, cfg.Kafka.TestTopic, cfg)
+	if err != nil {
+		return errors.Wrap(err, "Init kafka producer")
 	}
-
-	log.SetLevel(logLevel)
-
-	log.Logger().Info("app running")
+	defer testProducer.Close()
 
 	<-ctx.Done()
 
