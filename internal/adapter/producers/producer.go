@@ -2,7 +2,6 @@ package producer
 
 import (
 	"context"
-	"fmt"
 	"kafka-golang/internal/infrastructure/log"
 
 	"github.com/IBM/sarama"
@@ -15,7 +14,7 @@ const messageIDHeader = "MessageId"
 type Producer interface {
 	Produce(ctx context.Context, key []byte, message []byte) error
 	ProduceWithMsgID(ctx context.Context, msgID, key, message []byte) error
-	Close()
+	Close(ctx context.Context)
 	ProduceWithHeaders(ctx context.Context, key, message []byte, headers map[string]string) error
 }
 
@@ -38,7 +37,7 @@ func (p *eventProducer) ProduceWithMsgID(ctx context.Context, msgID, key, messag
 func (p *eventProducer) ProduceWithHeaders(ctx context.Context, key, message []byte, headers map[string]string) error {
 	uuidP, err := uuid.NewRandom()
 	if err != nil {
-		return errors.Wrap(err, "generate uuid")
+		return errors.Wrap(err, "Generate uuid")
 	}
 
 	return p.produce(ctx, []byte(uuidP.String()), key, message, headers)
@@ -47,7 +46,7 @@ func (p *eventProducer) ProduceWithHeaders(ctx context.Context, key, message []b
 func (p *eventProducer) Produce(ctx context.Context, key, message []byte) error {
 	uuidP, err := uuid.NewRandom()
 	if err != nil {
-		return errors.Wrap(err, "generate uuid")
+		return errors.Wrap(err, "Generate uuid")
 	}
 
 	return p.produce(ctx, []byte(uuidP.String()), key, message, nil)
@@ -80,17 +79,17 @@ func (p *eventProducer) produce(ctx context.Context, msgID, key, message []byte,
 	partition, offset, err := p.producer.SendMessage(msg)
 	if err != nil {
 		l.Errorf("Failed to send message to Kafka: %v", err)
-		return errors.Wrapf(err, "failed to produce message to topic %s", p.topicName)
+		return errors.Wrapf(err, "Failed to produce message to topic %s", p.topicName)
 	}
 
 	l.Infof("Message sent successfully to topic %s partition %d offset %d", p.topicName, partition, offset)
 	return nil
 }
 
-func (p *eventProducer) Close() {
+func (p *eventProducer) Close(ctx context.Context) {
 	if err := p.producer.Close(); err != nil {
-		fmt.Printf("Error closing Kafka producer: %v\n", err)
+		log.FromContext(ctx).Errorf("Error closing Kafka producer: %v\n", err)
 	} else {
-		fmt.Println("Kafka producer stopped")
+		log.FromContext(ctx).Infof("Kafka producer stopped")
 	}
 }

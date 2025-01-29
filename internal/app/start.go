@@ -7,6 +7,7 @@ import (
 	"kafka-golang/internal/config"
 	"kafka-golang/internal/infrastructure/kafka"
 	"kafka-golang/internal/infrastructure/log"
+	"kafka-golang/internal/usecase"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,7 +37,15 @@ func Start(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Init kafka producer")
 	}
-	defer testProducer.Close()
+	defer testProducer.Close(ctx)
+
+	uc := usecase.NewUseCase(testProducer)
+
+	err = uc.SendNotification(ctx)
+	if err != nil {
+		l.Errorf("Send notification failed: %v", err)
+		return errors.Wrapf(err, "Send notification")
+	}
 
 	<-ctx.Done()
 
