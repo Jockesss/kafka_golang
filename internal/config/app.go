@@ -15,7 +15,7 @@ type KafkaAppConf struct {
 	Kafka modules.Kafka     `env-prefix:"APP_KAFKA_"`
 }
 
-func LoadKafkaAppConfConf() (*KafkaAppConf, error) {
+func LoadKafkaAppConf() (*KafkaAppConf, error) {
 	var (
 		cfg KafkaAppConf
 		err error

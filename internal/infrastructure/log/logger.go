@@ -50,14 +50,6 @@ func SetLogger(l *zap.SugaredLogger) {
 	global = l
 }
 
-func Logger() *zap.SugaredLogger {
-	return global
-}
-
-func SetLevel(l zapcore.Level) {
-	defaultLevel.SetLevel(l)
-}
-
 func WithTraceID(ctx context.Context, logger *zap.SugaredLogger) *zap.SugaredLogger {
 	sc := trace.SpanContextFromContext(ctx)
 

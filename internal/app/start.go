@@ -26,7 +26,7 @@ func Start(ctx context.Context) error {
 	l := log.New(defaultLevel, os.Stdout)
 	ctx = log.WithLogger(ctx, l)
 
-	cfg, err := config.LoadKafkaAppConfConf()
+	cfg, err := config.LoadKafkaAppConf()
 	if err != nil {
 		return errors.Wrapf(err, "Load config file")
 	}
